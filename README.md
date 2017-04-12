@@ -4,7 +4,7 @@ Converts comments to Markdown that may be used in reference documentation.
 
 ## Usage
 
-`sh2md` has no args and expects a shell script with comments as described below on the stdin and will markdown output result on the stdout.
+`sh2md` has no args and expects a shell script with comments as described below on `stdin` and will output markdown to `stdout`.
 
 To display shell script Markdown on screen:
 ```sh
@@ -50,11 +50,21 @@ $ cat sample.sh | sh2md
 
 `single/multi` fields also accept plural forms, eg. `@authors`, `@dependencies`, etc.
 
-For `multi` fields (`@info` and `@description`), you should use `##` to indicate the end of the field (to avoid issues with multiple empty lines). The field will be converted into paragraphs and extra newlines will be removed.
+For `multi` fields like `@info` and `@description`, you should use `##` to indicate the end of the field (to avoid issues with multiple empty lines)
 
 ## TODO
 
+- [ ] Add a function to remove multiple newlines from multiline comments.
+- [ ] Add a function to convert multiline comments `@info` and `@description` into paragraphs.
 - [ ] Add more fields.
+
+## Credits
+
+This awk script contains portions of code from [shdoc](https://github.com/reconquest/shdoc).
+
+## License
+
+sh2md is released under the [GPL-3.0 License](https://opensource.org/licenses/GPL-3.0).
 
 ## Example
 
@@ -159,4 +169,3 @@ echo 123
 - [anotherFunc()](#anotherFunc())
 
 ---
-
