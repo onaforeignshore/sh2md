@@ -4,7 +4,9 @@
 # @title sh2md - Shell script comment to Markdown converter
 #
 # @info
-# sh2md is based on [shdoc](https://github.com/reconquest/shdoc), but has been rewritten from scratch with many improvements.
+#
+# sh2md is based on [shdoc](https://github.com/reconquest/shdoc),
+# but has been rewritten from scratch with many improvements.
 ##
 # @author [onaforeignshore](https://github.com/onaforeignshore)
 #
@@ -17,9 +19,9 @@ BEGIN {
 	IGNORECASE = 1
 
 	# sections
-	hasInfo = 0
+	hasFileInfo = 0
 	hasTOC = 0
-	hasDoc = 0
+	hasDocInfo = 0
 
 	# docInfo block
 	hasTitle = 0
@@ -69,6 +71,13 @@ BEGIN {
 
 	styles["github", "exitcode", "from"] = "([0-9>]*) (.*)"
 	styles["github", "exitcode", "to"] = "**\\1** \\2"
+
+	# user defined styles
+	styles["github", "info", "from"] = ".*"
+	styles["github", "info", "to"] = "_&_" # add your info block style here
+
+	styles["github", "description", "from"] = ".*"
+	styles["github", "description", "to"] = "_&_" # add your description block style here
 }
 
 function render(type, text) {
@@ -88,7 +97,7 @@ function mdescape(text) {
 	return text
 }
 
-function removeBlanks (text) {
+function removeBlanks(text) {
 	n = split(text, ar, "\n")
 	str = ""
 	for (i in ar) {
@@ -100,8 +109,42 @@ function removeBlanks (text) {
 	return str
 }
 
-function addStyle (text, style1, style2, style3) {
+function makeParagraphs(text) {
 	n = split(text, ar, "\n")
+	str = ""
+	for (i in ar) {
+		if (i == 1 && ar[i] == "") {
+			# skip first blank line
+			continue
+		}
+		if (ar[i] == "") {
+			# current line is empty - check next line
+			if (ar[i+1] != "") {
+				# next line is not empty - join
+				str = str ar[i+1] " "
+			} else {
+				# next line is also empty - strip extra newlines
+				continue
+			}
+		} else {
+			# current line is not empty - check next line for newline
+			if (ar[i+1] != "") {
+				# next line is not empty - join
+				str = str ar[i+1] " "
+			} else {
+				# next line is empty - make paragraph
+				if (i+1 != n) {
+					# don't add newlines at end
+					str = str "\n\n"
+				}
+			}
+		}
+	}
+	return str
+}
+
+function addStyle(text, style1, style2, style3) {
+	split(text, ar, "\n")
 	str = ""
 	for (i in ar) {
 		if (ar[i] != "") {
@@ -113,20 +156,20 @@ function addStyle (text, style1, style2, style3) {
 	return str
 }
 
-inInfoBlock {
-	hasInfo = 1
+inFileBlock {
+	hasFileInfo = 1
 	blockDone = 0
 	if ( /^[^#]|^# @|^##+/ ) {
 		blockDone = 1
 	}
-	switch (inInfoBlock) {
+	switch (inFileBlock) {
 		case "title":
 			if (blockDone) {
-				inInfoBlock = 0
+				inFileBlock = 0
 				if (!hasTitle) {
 					hasTitle = 1
 				}
-				infoBlock = infoBlock addStyle(removeBlanks(titleBlock), "title")
+				fileBlock = fileBlock addStyle(removeBlanks(titleBlock), "title")
 				titleBlock = ""
 			} else {
 				sub(/^#[ ]*/, "")
@@ -136,12 +179,12 @@ inInfoBlock {
 		break
 		case "version":
 			if (blockDone) {
-				inInfoBlock = 0
+				inFileBlock = 0
 				if (!hasVersion) {
 					hasVersion = 1
-					infoBlock = infoBlock "\n" render("h2", "Version") "\n\n"
+					fileBlock = fileBlock "\n" render("h2", "Version") "\n\n"
 				}
-				infoBlock = infoBlock addStyle(removeBlanks(versionBlock), "li")
+				fileBlock = fileBlock addStyle(removeBlanks(versionBlock), "li")
 				versionBlock = ""
 			} else {
 				sub(/^#[ ]*/, "")
@@ -151,12 +194,12 @@ inInfoBlock {
 		break
 		case "author":
 			if (blockDone) {
-				inInfoBlock = 0
+				inFileBlock = 0
 				if (!hasAuthor) {
 					hasAuthor = 1
-					infoBlock = infoBlock "\n" render("h2", "Author(s)") "\n\n"
+					fileBlock = fileBlock "\n" render("h2", "Author(s)") "\n\n"
 				}
-				infoBlock = infoBlock addStyle(removeBlanks(authorBlock), "li")
+				fileBlock = fileBlock addStyle(removeBlanks(authorBlock), "li")
 				authorBlock = ""
 			} else {
 				sub(/^#[ ]*/, "")
@@ -166,12 +209,12 @@ inInfoBlock {
 		break
 		case "dependency":
 			if (blockDone) {
-				inInfoBlock = 0
+				inFileBlock = 0
 				if (!hasDependency) {
 					hasDependency = 1
-					infoBlock = infoBlock "\n" render("h2", "Dependencies") "\n\n"
+					fileBlock = fileBlock "\n" render("h2", "Dependencies") "\n\n"
 				}
-				infoBlock = infoBlock addStyle(removeBlanks(dependencyBlock), "li")
+				fileBlock = fileBlock addStyle(removeBlanks(dependencyBlock), "li")
 				dependencyBlock = ""
 			} else {
 				sub(/^#[ ]*/, "")
@@ -181,12 +224,12 @@ inInfoBlock {
 		break
 		case "source":
 			if (blockDone) {
-				inInfoBlock = 0
+				inFileBlock = 0
 				if (!hasSource) {
 					hasSource = 1
-					infoBlock = infoBlock "\n" render("h2", "Source(s)") "\n\n"
+					fileBlock = fileBlock "\n" render("h2", "Source(s)") "\n\n"
 				}
-				infoBlock = infoBlock addStyle(removeBlanks(sourceBlock), "anchor")
+				fileBlock = fileBlock addStyle(removeBlanks(sourceBlock), "anchor")
 				sourceBlock = ""
 			} else {
 				sub(/^#[ ]*/, "")
@@ -194,61 +237,61 @@ inInfoBlock {
 				sourceBlock = sourceBlock $0 "\n"
 			}
 		break
-		case "content":
+		case "info":
 			if (blockDone) {
-				inInfoBlock = 0
-				if (!hasContent) {
-					hasContent = 1
-					infoBlock = infoBlock "\n" render("h2", "File Description") "\n\n"
+				inFileBlock = 0
+				if (!hasInfo) {
+					hasInfo = 1
+					fileBlock = fileBlock "\n" render("h2", "File Description") "\n\n"
 				}
-				infoBlock = infoBlock addStyle(contentBlock, "i")
+				fileBlock = fileBlock addStyle(makeParagraphs(infoBlock), "info")
 				sourceBlock = ""
 			} else {
 				sub(/^#[ ]*/, "")
-				contentBlock = contentBlock $0 "\n"
+				infoBlock = infoBlock $0 "\n"
 			}
 		break
 	}
 }
 
 /^# @title/ {
-	inInfoBlock = "title"
+	inFileBlock = "title"
 	sub(/^# @title[ ]*/, "")
 	titleBlock = titleBlock mdescape($0) "\n"
 }
 
 /^# @version/ {
-	inInfoBlock = "version"
+	inFileBlock = "version"
 	sub(/^# @version[ ]*/, "")
 	versionBlock = versionBlock mdescape($0) "\n"
 }
 
 /^# @authors?/ {
-	inInfoBlock = "author"
+	inFileBlock = "author"
 	sub(/^# @authors?[ ]*/, "")
 	authorBlock = authorBlock mdescape($0) "\n"
 }
 
 /^# @dependenc(y|ies)?/ {
-	inInfoBlock = "dependency"
+	inFileBlock = "dependency"
 	sub(/^# @dependenc(y|ies)?[ ]*/, "")
 	dependencyBlock = dependencyBlock mdescape($0) "\n"
 }
 
 /^# @sources?/ {
-	inInfoBlock = "source"
+	inFileBlock = "source"
 	sub(/^# @sources?[ ]*/, "")
 	sourceBlock = sourceBlock mdescape($0) "\n"
 }
 
 /^# @info/ {
-	inInfoBlock = "content"
+	inFileBlock = "info"
 	sub(/^# @info/, "")
-	contentBlock = contentBlock mdescape($0) "\n"
+	infoBlock = infoBlock mdescape($0) "\n"
 }
 
 inFuncBlock {
-	hasDoc = 1
+	hasDocInfo = 1
 	blockDone = 0
 	if ( /^[^#]|^# @|^##+/ ) {
 		blockDone = 1
@@ -257,7 +300,7 @@ inFuncBlock {
 		case "description":
 			if (blockDone) {
 				inFuncBlock = 0
-				funcBlock = funcBlock descBlock
+				funcBlock = funcBlock addStyle(makeParagraphs(descBlock), "description")
 				descBlock = ""
 			} else {
 				sub(/^#[ ]*/, "")
@@ -452,7 +495,7 @@ inFuncBlock {
 }
 
 END {
-	if (hasInfo) { print infoBlock }
+	if (hasFileInfo) { print fileBlock }
 	if (hasTOC) { print toc }
-	if (hasDoc) { print doc }
+	if (hasDocInfo) { print doc }
 }
