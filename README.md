@@ -109,7 +109,7 @@ sh2md is released under the [GPL-3.0 License](https://opensource.org/licenses/GP
 someFunc() {
 ```
 
-To produce following output
+To produce the following output:
 
 ---
 
