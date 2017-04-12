@@ -50,12 +50,10 @@ $ cat sample.sh | sh2md
 
 `single/multi` fields also accept plural forms, eg. `@authors`, `@dependencies`, etc.
 
-For `multi` fields like `@info` and `@description`, you should use `##` to indicate the end of the field (to avoid issues with multiple empty lines)
+For `multi` fields (`@info` and `@description`), you should use `##` to indicate the end of the field (to avoid issues with multiple empty lines). The field will be converted into paragraphs and extra newlines will be removed.
 
 ## TODO
 
-- [ ] Add a function to remove multiple newlines from multiline comments.
-- [ ] Add a function to convert multiline comments `@info` and `@description` into paragraphs.
 - [ ] Add more fields.
 
 ## Example
