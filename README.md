@@ -54,9 +54,7 @@ For `multi` fields like `@info` and `@description`, you should use `##` to indic
 
 ## TODO
 
-- [ ] Add a function to remove multiple newlines from multiline comments.
-- [ ] Add a function to convert multiline comments `@info` and `@description` into paragraphs.
-- [ ] Add more fields.
+- Add more fields.
 
 ## Credits
 
