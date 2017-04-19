@@ -113,10 +113,6 @@ function makeParagraphs(text) {
 	n = split(text, ar, "\n")
 	str = ""
 	for (i in ar) {
-		if (i == 1 && ar[i] == "") {
-			# skip first blank line
-			continue
-		}
 		if (ar[i] == "") {
 			# current line is empty - check next line
 			if (ar[i+1] != "") {
